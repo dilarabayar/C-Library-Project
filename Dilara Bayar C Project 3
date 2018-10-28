@@ -1,0 +1,516 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+/*Dilara Bayar HW3 150115022 */
+
+/*Function declaration */
+void readFilePutLinkedList();
+void insertionLinkedList(int id, char * bookName, char * authorName);
+void showLinkedList();
+void showMenu();
+void cexit();
+void update();
+void create();
+int searchID(int id);
+void deleted();
+void sortingID();
+void sortingBookName();
+void sortingAuthorName();
+void writeLinkedListToTheFile();
+void againgLastSort();
+
+/* Defining struct to record data's */
+struct books{
+	int id;
+	char bookName[50];
+	char authorName[50];
+	struct books * next;
+};
+
+// First struct declaration to show begining of the link list
+struct books * head = NULL;
+int sort = 1; //1: id, 2: book name, 3: author name
+
+/* Main function */
+int main(){
+	
+	/*Calling functions to use in main function */
+	readFilePutLinkedList();
+	showMenu();
+	
+	return 0;
+}
+
+void readFilePutLinkedList(){
+	
+	FILE *fp;
+	fp = fopen("bookList.txt", "r+"); //open a text file to read.
+	int id;
+	char bookName[50];
+	char authorName[50];
+	/* Read file until end of the file. */
+	while (!feof(fp)) {
+  		fscanf(fp,"%d %s %s", &id, bookName, authorName);
+  		if(id == -1) return;
+  		insertionLinkedList(id, bookName, authorName); //Calling function
+	}	
+	
+	fclose(fp);
+}
+
+void insertionLinkedList(int id, char * bookName, char * authorName){ //This function insert a new pointer end of the linked list.
+	
+	struct books * temp = head; //Declare temporary book struct pointer.
+	struct books * node = (struct books *)malloc(sizeof(struct books)); //Allocate memory, return pointer node.
+	node -> id = id;
+	strcpy(node -> bookName, bookName);
+	strcpy(node -> authorName, authorName);
+	node -> next = NULL;
+	
+	if (head == NULL){ //If it is null return.
+		head = node;
+		return;
+	}
+	while(temp -> next != NULL){
+	
+		temp = temp -> next;
+	}
+	temp -> next = node;
+	return;
+}
+
+void showLinkedList(){ //List all function.
+
+    printf("NO  BOOK NAME    AUTHOR NAME\n");
+	printf("==  ==========  =============\n");  
+	
+	struct books * temp = head;
+	if(temp == NULL){ //If file is empty quit from function.
+		return;
+	}
+	while ( temp != NULL){ //Write to compiler linked list.
+		printf("%d %s %s\n", temp -> id, temp -> bookName, temp -> authorName);
+		temp = temp -> next;
+	}
+}
+
+void showMenu(){ 
+	
+	while(1){
+		
+		char valuee[50]; 
+		printf("\nLibrary\n");
+	    printf("1 - List all books\n2 - Update a book\n3 - Create a new book\n4 - Delete a book\n5 - Sort all books according to id\n6 - Sort all books according to book name\n7 - Sort all books according to author name\n8 - Exit\n");
+	    printf("Enter your choice: ");
+		scanf("%s", valuee); //Fet a string from user.
+		
+		if(strlen(valuee) > 1){ //If string length is longer than 1, input is invalid.
+			printf("Please be sure that you entered integer valid character\n");
+			continue;
+		}
+		
+		int value = atoi(valuee); //Turn string to integer.
+	  	
+	  
+		if(value == 1){ //show all the linked list.
+			showLinkedList();	
+		}
+		
+		else if(value == 2){
+			update();
+			againgLastSort(); //If list sorted before, update according to it.
+			writeLinkedListToTheFile();
+		}
+		
+		else if(value == 3){
+			create();
+			againgLastSort(); //If list sorted before, update according to it.
+			writeLinkedListToTheFile();
+		}
+		
+		else if(value == 4){
+			deleted();
+			writeLinkedListToTheFile();
+		}
+		else if(value == 5){
+			sortingID();
+			sort = 1;
+			writeLinkedListToTheFile();
+		}
+		else if(value == 6){
+			sortingBookName();
+			sort = 2;
+			writeLinkedListToTheFile();
+		}
+		else if(value == 7){
+			sortingAuthorName();
+			sort = 3;
+			writeLinkedListToTheFile();
+		}
+		else if(value == 8){
+			writeLinkedListToTheFile();
+			cexit(); //Exit
+		}
+		else{ //Error handling.
+			printf("Please be sure that you entered integer valid character\n");
+		}
+		
+	}
+}
+
+void cexit(){ //Exit from program
+	printf("Program ends....Bye....");
+    exit(0);
+}
+
+void update(){
+	
+	char input[50];
+	
+	struct books * temp = head;
+	if(temp == NULL){ //If list if empty.
+		printf("There is no book in library.");
+		return;
+	}
+	
+	
+	printf("Please enter the record number of the book you want to update : ");
+    scanf("%s", input);
+    
+    int id = atoi(input);
+	
+	if(id == NULL){
+		printf("Please bu sure that you entered integer!!");
+		return;
+	}
+
+	while(temp -> id != id ){ //Search for correct id..
+		temp = temp -> next;
+		if(temp == NULL){ //If file is empty quit from loop.
+			break;
+		}
+	}
+	
+	if(temp == NULL){
+		printf("There is no book with id which you entered.");
+	}
+	else{
+		
+		printf("%d %s %s\n", temp -> id, temp -> bookName, temp -> authorName);
+		
+		char value[50];
+	    printf("1 - Update book name\n2 - Update author name\n");
+	    printf("Enter your choice: ");
+	    scanf("%s", value); //Get a string from user.
+
+	    if(strlen(value) > 1){ //If string length is longer than 1, input is invalid.
+			printf("Please be sure that you entered integer valid character\n");
+			return;
+		}
+		
+		int choice = atoi(value); // Turn string to integer.
+		
+		
+		if(choice == 1){
+			char newName [50];
+			printf("Enter new book name: ");
+			scanf("%s", newName);
+			strcpy(temp -> bookName, newName); //String copy to update book name.
+		}
+		else if(choice == 2){
+			char authorName [50];
+			printf("Enter new author name: ");
+			if(scanf("%s", authorName)==0){ //If user entered invalid characterreturn to main menu.
+				printf("Please be sure that you have entered string.");
+				return;
+			}
+			strcpy(temp -> authorName, authorName); //String copy to update author name.
+		}
+		else{ //If user entered different integer from 1 and 2.
+			printf("Please be sure that you entered integer valid character\n");	
+		}
+		
+		
+	}
+	
+}
+
+void create(){
+	
+	char input[50];
+	
+	printf("Enter id for new book: ");
+	scanf("%s", input);
+    	
+	int id = atoi(input);
+	
+	if(id == NULL){
+		printf("Please bu sure that you entered integer!!");
+		return;
+	}
+	
+	int boolean = searchID(id); //Search that this id is in the list.
+	
+	if(head == NULL){ //If list is null.
+		
+	}
+	
+	else if(boolean == 1){
+		printf("This id is already in the list!");
+		return ;
+	}
+	
+	char bookName [50], authorName[50];
+	
+	printf("Enter book name: ");
+	scanf("%s",bookName); 
+	printf("Enter author name: ");
+	if(scanf("%s",authorName)==0){ //Check if user did'nt enter integer for id.
+		printf("Please be sure that you have entered a string.");
+		return;
+	}
+	
+	
+	insertionLinkedList(id,bookName,authorName); //Add link list new data.
+}
+
+int searchID(int id){ //Search if this id is already in the link list.
+	struct books * temp = head;
+	
+	
+	while(temp != NULL){
+		
+		
+		if(temp -> id == id){ //If id is exist return 1.
+			return 1;
+		}
+		
+		temp = temp -> next; //Search for the next one.
+		
+		
+	}
+	return -1; //Else return -1.
+}
+
+void deleted(){
+	char input[50];
+	
+	struct books * temp = head;
+	if(temp == NULL){ //If list if empty.
+		printf("There is no book in library.");
+		return;
+	}
+	
+	printf("Enter the record number to delete : ");
+	scanf("%s", input);
+    
+	if(strlen(input) > 1){ //If string length is longer than 1, input is invalid.
+			printf("Please be sure that you entered integer valid character\n");
+			return;
+		}
+		
+	int id = atoi(input); //Return string to integer.
+	
+	int boolean = searchID(id); //Search for id existence.
+	
+	if(boolean == -1){ //If searchID return -1, it is not exist.
+		printf("There is no book with id which you entered.");
+		return;
+	}
+	else{
+		
+		struct books * cp = head; 
+		while( temp -> id != id){ //Search for right id.
+			cp = temp;
+			temp = temp -> next;
+		}
+		//If id is equals to first, last or another there will be different deleting.
+		if( temp == head){ //Deleting first one.
+			head = head -> next;
+			free(temp);
+		}
+		else if ( temp -> next == NULL){ //Deleting last one.
+			cp -> next = NULL;
+			free(temp);
+		}
+		else{ //Deleting others.
+			cp -> next = temp -> next;
+			free(temp);
+		}
+
+		printf("DELETED");
+	}
+}
+
+void sortingID(){
+	
+	struct books * temp = head;
+	
+	if(temp == NULL || temp -> next == NULL){ //If list does not exist or only one data exist.
+		return;
+	}
+	
+	struct books * cp = temp -> next;
+	
+	while(cp != NULL){
+		
+		int check = 0;
+		
+		if(temp -> id > cp -> id){ //If previous one id is bigger than next one swap.
+			int swapID = cp -> id; //Temporary data.
+			char swapBookName[50];
+			char swapAuthorName[50];
+			strcpy(swapBookName, cp -> bookName); //Copy next one to temporary data.
+			strcpy(swapAuthorName, cp-> authorName);
+			
+			cp -> id = temp -> id;
+			strcpy(cp -> bookName, temp -> bookName); //Copy previous one to next one.
+			strcpy(cp -> authorName, temp -> authorName);
+			
+			temp -> id = swapID;
+			strcpy(temp -> bookName, swapBookName); //Copy temporary data to previous one.
+			strcpy(temp -> authorName, swapAuthorName);
+			
+			temp = head; //previous one.
+			cp = temp -> next; //Next one.
+			
+			check++;	//If deleting is done, plus check.
+		}
+
+		if(check == 0){ //If check is equal to zero than compare other next ones.This is necessary for deleting only one data.
+			temp = cp;
+			cp = cp -> next;
+		}
+	}
+}
+
+
+void sortingBookName(){
+	
+	struct books * temp = head;
+	
+	if(temp == NULL || temp -> next == NULL){ //If list does not exist or only one data exist.
+		return;
+	}
+	
+	struct books * cp = temp -> next;
+	
+	while(cp != NULL){
+		
+		int check = 0;
+		
+		int comp_result = strcmp(temp -> bookName, cp -> bookName); //Compare strings to their ASCİİ.
+		if(comp_result > 0){ //If temp greater than bookName.
+			int swapID = cp -> id; 
+			//Swap them.
+			
+			char swapBookName[50]; 
+			char swapAuthorName[50];
+			strcpy(swapBookName, cp -> bookName);
+			strcpy(swapAuthorName, cp-> authorName);
+			
+			cp -> id = temp -> id;
+			strcpy(cp -> bookName, temp -> bookName);
+			strcpy(cp -> authorName, temp -> authorName);
+			
+			temp -> id = swapID;
+			strcpy(temp -> bookName, swapBookName);
+			strcpy(temp -> authorName, swapAuthorName);
+			
+			temp = head;
+			cp = temp -> next;
+			
+			check++; //If deleting is done, plus check.
+			
+		}
+
+		if( check == 0){ //If check is equal to zero than compare other next ones.
+			temp = cp;
+			cp = cp -> next;
+		}
+	}
+}
+
+void sortingAuthorName(){
+	
+	struct books * temp = head; //Initial one, start from head.
+	
+	if(temp == NULL || temp -> next == NULL){ //If list does not exist or only one data exist.
+		return;
+	}
+	
+	struct books * cp = temp -> next; //Next one.
+	
+	while(cp != NULL){
+		
+		int check = 0;
+		
+		int comp_result = strcmp(temp -> authorName, cp -> authorName); //Compare strings to their ASCİİ.
+		if(comp_result > 0){ //If temp greater than cp.
+		    //Swapping.
+			int swapID = cp -> id;
+			char swapBookName[50];
+			char swapAuthorName[50];
+			strcpy(swapBookName, cp -> bookName);
+			strcpy(swapAuthorName, cp-> authorName);
+			
+			cp -> id = temp -> id;
+			strcpy(cp -> bookName, temp -> bookName);
+			strcpy(cp -> authorName, temp -> authorName);
+			
+			temp -> id = swapID;
+			strcpy(temp -> bookName, swapBookName);
+			strcpy(temp -> authorName, swapAuthorName);
+			
+			temp = head;
+			cp = temp -> next;
+			
+			check++;
+			
+		}
+
+		if( check == 0){ //If check is equal to zero than compare other next ones.
+			temp = cp;
+			cp = cp -> next;
+		}
+	}
+}
+
+void writeLinkedListToTheFile(){ //Write linked list to a file.
+	
+	FILE *fp = fopen("bookList.txt","w"); //open file to write.
+	
+	struct books * temp = head;
+	if( temp == NULL){
+		return;
+	}
+	
+  
+	int variable = 0;
+	while(temp != NULL){
+	
+		if( variable == 0){
+			fprintf(fp,"%d %s %s",temp -> id, temp -> bookName, temp -> authorName);
+			variable++;
+		}
+		else{
+			fprintf(fp,"\n%d %s %s ",temp -> id, temp -> bookName, temp -> authorName); //Write to a bottom line.
+		}
+		temp = temp -> next; //write next one.
+	}
+	fclose(fp); //close file.
+}
+
+void againgLastSort(){ //Call the proper sorting type according to previous sort type.
+	
+	if( sort == 1){
+		sortingID();
+	}
+	else if( sort == 2){
+		sortingBookName();
+	}
+	else if(sort == 3){
+		sortingAuthorName();
+	}
+}
